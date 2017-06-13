@@ -98,6 +98,10 @@ function PublicRouter(app) {
         return responseFactory.sendRenderedResponse("public/index", req, res);
     });
 
+    router.get('/show',function(req,res){
+        return responseFactory.sendRenderedResponse("public/show", req, res);
+    });
+
     router.get('/popout', function(req, res) {
         return responseFactory.sendRenderedResponse("public/popout", req, res);
     });
@@ -240,6 +244,7 @@ function PublicRouter(app) {
                 failureRedirect: '/signup',
                 successRedirect: '/?signedin=1'
             }), function(req, res) {
+              res.express
                 res.redirect('/?signedin=1') // Successful auth 
             });
         }
