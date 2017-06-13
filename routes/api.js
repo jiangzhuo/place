@@ -90,10 +90,10 @@ function APIRouter(app) {
     });
 
     router.post('/place', requireUser, function(req, res, next) {
-         if (fs.existsSync(path.join(__dirname, '../util/', 'legit.js'))) {
-             const legit = require('../util/legit');
-             if (!legit.verify(req)) return res.status(403).json({ success: false, error: { message: "You cannot do that.", code: "unauthorized" } });
-         }
+         // if (fs.existsSync(path.join(__dirname, '../util/', 'legit.js'))) {
+         //     const legit = require('../util/legit');
+         //     if (!legit.verify(req)) return res.status(403).json({ success: false, error: { message: "You cannot do that.", code: "unauthorized" } });
+         // }
         function paintWithUser(user) {
             if (!user.canPlace()) return res.status(429).json({ success: false, error: { message: "You cannot place yet.", code: "slow_down" } });
             if (!req.body.x || !req.body.y || !req.body.colour) return res.status(400).json({ success: false, error: { message: "You need to include all paramaters", code: "invalid_parameters" } });

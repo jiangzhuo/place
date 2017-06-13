@@ -13,6 +13,7 @@ const del = require('del');
 const pump = require('pump');
 const ErrorTracker = require("./util/ErrorTracker");
 const LeaderboardManager = require("./util/LeaderboardManager");
+const BilibiliComment = require('./util/biliComment');
 
 let paths = {
     scripts: {
@@ -112,3 +113,4 @@ gulp.task('default', ['watch', 'scripts']);
 gulp.start(['watch', 'scripts'])
 
 app.server.listen(app.config.port, app.config.onlyListenLocal ? "127.0.0.1" : null);
+BilibiliComment(app, 545342).connect();
