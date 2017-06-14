@@ -52,6 +52,7 @@ function PaintingHandler(app) {
                             if (err) return reject(err);
                             this.hasImage = true;
                             this.image = image;
+                            this.setPixelCount = 0;
                             this.imageBatch = this.image.batch();
                             app.websocketServer.broadcast("server_ready");
                             resolve(image);
@@ -108,12 +109,17 @@ function PaintingHandler(app) {
                     app.temporaryUserInfo.setUserPlacing(user, false);
                     if(err) return reject(err);
                     // Paint on live image:
-                    a.imageBatch.setPixel(x, y, colour).exec((err, image) => {
-                        if(image) {
-                            a.imageHasChanged = true;
-                            a.generateOutputImage();
-                        }
-                    });
+                    a.setPixelCount += 1;
+                    a.imageBatch.setPixel(x, y, colour);
+                    if (a.setPixelCount >= 50) {
+                        a.setPixelCount = 0;
+                        a.imageBatch.exec((err, image) => {
+                            if (image) {
+                                a.imageHasChanged = true;
+                                a.generateOutputImage();
+                            }
+                        })
+                    }
                     // Send notice to all clients:
                     var info = {x: x, y: y, colour: colour, userID: user.id};
                     app.websocketServer.broadcast("tile_placed", info);

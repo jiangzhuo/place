@@ -40,58 +40,60 @@ module.exports = function (app, cid) {
         //普通视频 length==2 ; live length==3
         // if(!data && !data.cmd) return util.Comment.cout("[系统] ".bold.yellow + "异常数据".red);
 
-        switch(data.cmd){ //操作命令
+        switch (data.cmd) { //操作命令
             case 'DANMU_MSG': //弹幕
                 info = data.info;//ignore other arguments
-
                 //获取时间
                 date = info[0][4];
                 msg = info[1];
-
-                var uname = info[2][1];
+                var uname = info[2][1].replace(/\//g, '');
                 var uid = info[2][0];
-                console.log(date, msg);
-            function getRandomArbitrary(min, max) {
-                return parseInt(Math.random() * (max - min) + min) ;
-            }
-                function paintWithUser(user) {
-                    if (!user.canPlace()) return console.log('too fast', uname);
-                    var x = getRandomArbitrary(1,999);
-                    var y = getRandomArbitrary(1,999);
-                    var rgb = app.paintingHandler.getColourRGB(getRandomArbitrary(0,14));
-                    app.paintingHandler.doPaint(rgb, x, y, user).then(pixel => {
-                        // return User.findById(user.id).then(user => {
-                        //     var seconds = user.getPlaceSecondsRemaining();
-                        //     var countData = {canPlace: seconds <= 0, seconds: seconds};
-                        //     console.log(user.OAuthID, seconds);
-                        // }).catch(err => console.error(err, 'paintError'));
-                        return ChatMessage.createMessage(app, user.id, `填充了${rgb.name}`, x, y).then(message => {
-                            var info = message.getInfo().then(info => {
-                                app.websocketServer.broadcast("new_message", info);
-                            }).catch(err => app.reportError(err))
-                        }).catch(err => {
-                            app.reportError(err);
-                            res.status(500).json( { success: false, error: { message: "An error occurred while trying to send your message.", code: "server_message_error" } })
-                        })
+                console.log(date,uname,uid,msg);
 
-                    }).catch(err => {
-                        console.error("Error placing pixel: ", err);
-                    });
+                var reg = /#(\d{1,4})-(\d{1,4})-(\d{1,2})#/;
+                var msgResult = reg.exec(msg);
+                if (msgResult != null && msgResult.length>=4) {
+                    var x = parseInt(msgResult[1],10);
+                    var y = parseInt(msgResult[2],10);
+                    var colour = parseInt(msgResult[3],10);
+                    if (x >= 0 && x <= 1000 && y >= 0 && y <= 1000 && colour >= 1 && colour <= 16) {
+                        console.log(uname, uid, x, y, colour);
+                        var rgb = app.paintingHandler.getColourRGB(colour - 1);
+                        User.findByUsername(uname, function (err, user) {
+                            if (err) return console.error(err);
+                            if (user != null) {
+                                console.log('findUser-danmu', user.id);
+                                paintWithUser(user, x, y, rgb);
+                            } else {
+                                User.register(uname, uid, function (user, error) {
+                                    if (error) return console.log(error);
+                                    console.log('newUser-danmu', user.id, uname, uid);
+                                    paintWithUser(user);
+                                }, 'bilibili_' + uid, 'bilibili')
+                            }
+                        })
+                    }
                 }
 
-                User.findByUsername(uname, function (err, user) {
-                    if (err) console.error(err);
-                    if (user != null) {
-                        console.log('findUser-danmu', user.id);
-                        paintWithUser(user);
-                    } else {
-                        User.register(uname, uid, function (user, error) {
-                            console.log('newUser-danmu', user.id, uname, uid);
-                            paintWithUser(user);
-                        }, 'bilibili_' + uid, 'bilibili')
-                    }
-                })
-
+            function paintWithUser(user, x, y, rgb) {
+                if (!user.canPlace()) return console.log('too fast', uname);
+                app.paintingHandler.doPaint(rgb, x, y, user).then(pixel => {
+                    // return User.findById(user.id).then(user => {
+                    //     var seconds = user.getPlaceSecondsRemaining();
+                    //     var countData = {canPlace: seconds <= 0, seconds: seconds};
+                    //     console.log(user.OAuthID, seconds);
+                    // }).catch(err => console.error(err, 'paintError'));
+                    return ChatMessage.createMessage(app, user.id, `填充了${rgb.name}`, x, y).then(message => {
+                        var info = message.getInfo().then(info => {
+                            app.websocketServer.broadcast("new_message", info);
+                        }).catch(err => app.reportError(err))
+                    }).catch(err => {
+                        return app.reportError(err);
+                    })
+                }).catch(err => {
+                    console.error("Error placing pixel: ", err);
+                });
+            }
 
                 break;
             case 'SEND_GIFT': //礼物
@@ -114,15 +116,14 @@ module.exports = function (app, cid) {
 
                 console.log(data);
 
-                User.findByUsername(info.uname,function(err,user){
-                    if(err) console.error(err);
-                    if(user!=null){
-                        console.log('findUser',user.id);
-
-                    }else{
-                        User.register(info.uname,info.uid,function (user,error) {
+                User.findByUsername(info.uname, function (err, user) {
+                    if (err) console.error(err);
+                    if (user != null) {
+                        console.log('findUser', user.id);
+                    } else {
+                        User.register(info.uname, info.uid, function (user, error) {
                             console.log('newUser', user.id, info.uname, info.uid);
-                        },'bilibili_'+info.uid,'bilibili')
+                        }, 'bilibili_' + info.uid, 'bilibili')
                     }
                 })
 

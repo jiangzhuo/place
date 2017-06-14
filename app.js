@@ -113,4 +113,4 @@ gulp.task('default', ['watch', 'scripts']);
 gulp.start(['watch', 'scripts'])
 
 app.server.listen(app.config.port, app.config.onlyListenLocal ? "127.0.0.1" : null);
-BilibiliComment(app, 545342).connect();
+BilibiliComment(app, 49625).connect();

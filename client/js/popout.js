@@ -211,8 +211,9 @@ var popoutController = {
     },
 
     addChatMessage: function(message) {
-        if(this.messages.map(m => m.id).indexOf(message.id) < 0) {
+        if (this.messages.map(m => m.id).indexOf(message.id) < 0) {
             this.messages.push(message);
+            this.messages = this.messages.slice(-20, this.messages.length);
             this.layoutMessages($("body").data("user-id") == message.userID);
         }
     },
