@@ -68,7 +68,7 @@ module.exports = function (app, cid) {
                                 User.register(uname, uid, function (user, error) {
                                     if (error) return console.log(error);
                                     console.log('newUser-danmu', user.id, uname, uid);
-                                    paintWithUser(user);
+                                    paintWithUser(user,x,y,rgb);
                                 }, 'bilibili_' + uid, 'bilibili')
                             }
                         })
